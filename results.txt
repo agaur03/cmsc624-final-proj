@@ -1,0 +1,197 @@
+[HANDLER_VERBOSE_OUTPUT] 
+UpdateCTestConfiguration  from :/home/chujun/a2-agaur03/a2/build/DartConfiguration.tcl
+
+UpdateCTestConfiguration  from :/home/chujun/a2-agaur03/a2/build/DartConfiguration.tcl
+[HANDLER_OUTPUT] 
+Test project /home/chujun/a2-agaur03/a2/build
+
+[HANDLER_VERBOSE_OUTPUT] 
+Constructing a list of tests
+
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+[HANDLER_OUTPUT] 
+    Start 1: lock_manager_test
+
+[HANDLER_VERBOSE_OUTPUT] 
+
+1: Test command: /home/chujun/a2-agaur03/a2/build/src/lock_manager_test
+
+1: Test timeout computed to be: 10000000
+1: [ LockManagerA_SimpleLocking ] [1;32mBEGIN[0m
+1: [ LockManagerA_SimpleLocking ] [1;32mPASS[0m
+1: [ LockManagerA_LocksReleasedOutOfOrder ] [1;32mBEGIN[0m
+1: [ LockManagerA_LocksReleasedOutOfOrder ] [1;32mPASS[0m
+1: [ LockManagerB_SimpleLocking ] [1;32mBEGIN[0m
+1: [ LockManagerB_SimpleLocking ] [1;32mPASS[0m
+1: [ LockManagerB_LocksReleasedOutOfOrder ] [1;32mBEGIN[0m
+1: [ LockManagerB_LocksReleasedOutOfOrder ] [1;32mPASS[0m
+[HANDLER_OUTPUT] 
+1/
+3 Test #1: lock_manager_test ................   Passed    0.00 sec
+[HANDLER_VERBOSE_OUTPUT] 
+test 2
+
+[HANDLER_OUTPUT] 
+    Start 2: txn_processor_test
+
+[HANDLER_VERBOSE_OUTPUT] 
+
+2: Test command: /home/chujun/a2-agaur03/a2/build/src/txn_processor_test
+
+2: Test timeout computed to be: 10000000
+2: 		-------------------------------------------------------------------
+2: 		                Average Transaction Duration
+2: 		-------------------------------------------------------------------
+2: 		0.1ms		1ms		10ms		(0.1ms, 1ms, 10ms)
+2: 		-------------------------------------------------------------------
+2: 		            Low contention Read only (5 records)
+2: 		-------------------------------------------------------------------
+2:  Serial   	9768.82		997.319		99.8842		313.65	
+2:  Locking A	46189		4951.92		560.95		1789.18	
+2:  Locking B	46041.3		4955.47		603.829		1689.36	
+2:  OCC      	43505		4968.8		603.767		1643.32	
+2:  OCC-P    	44700		4855.06		564.503		1924.89	
+2:  MVCC     	45218.4		5072.23		607.948		1605.47	
+2: 
+2: 		            Low contention Read only (30 records)
+2: 		-------------------------------------------------------------------
+2:  Serial   	8601.43		983.161		99.727		310.675	
+2:  Locking A	29026.6		4593.03		532.215		1694.21	
+2:  Locking B	29357.1		4989.71		585.791		1810.93	
+2:  OCC      	40079.2		5054.3		552.722		1642.97	
+2:  OCC-P    	39146.8		5307.73		563.61		1759.49	
+2:  MVCC     	37805.7		4906.22		596.077		2026.31	
+2: 
+2: 		            High contention Read only (5 records)
+2: 		-------------------------------------------------------------------
+2:  Serial   	9831.07		998.179		99.9526		302.887	
+2:  Locking A	18811.6		2451.15		245.654		562.624	
+2:  Locking B	46666.2		4714.72		553.937		1799.12	
+2:  OCC      	45266.8		5053.8		608.325		1716.12	
+2:  OCC-P    	45197		4925.33		577.012		1755.04	
+2:  MVCC     	45232.1		4933.09		621.918		1799.54	
+2: 
+2: 		            High contention Read only (30 records)
+2: 		-------------------------------------------------------------------
+2:  Serial   	9428.64		993.158		99.8697		324.857	
+2:  Locking A	6426.46		944.314		99.3645		309.022	
+2:  Locking B	43870.6		4930.35		511.41		1771.23	
+2:  OCC      	39492.5		5043.98		590.496		1686.78	
+2:  OCC-P    	43715		5186.25		604.54		1685.14	
+2:  MVCC     	41347.3		5044.87		616.523		1811.33	
+2: 
+2: 		            Low contention read-write (5 records)
+2: 		-------------------------------------------------------------------
+2:  Serial   	9548.56		994.461		99.87		317.661	
+2:  Locking A	45592.4		4903.36		554.791		1773.68	
+2:  Locking B	45921.2		4616.48		603.124		1647.17	
+2:  OCC      	43715.3		4868.23		583.868		1839.1	
+2:  OCC-P    	42612.1		5267.12		550.039		1789.09	
+2:  MVCC     	42974.7		4978.02		595.1		1678.89	
+2: 
+2: 		            Low contention read-write (10 records)
+2: 		-------------------------------------------------------------------
+2:  Serial   	9184.78		990.399		99.8143		307.914	
+2:  Locking A	44007.1		5100.4		602.211		1765.64	
+2:  Locking B	44716.5		5010.54		532.103		1816.2	
+2:  OCC      	44000.3		5269.28		589.079		1733.34	
+2:  OCC-P    	42174.2		4703.33		619.616		1913.65	
+2:  MVCC     	41119.3		5107.75		584.415		1759.24	
+2: 
+2: 		            High contention read-write (5 records)
+2: 		-------------------------------------------------------------------
+2:  Serial   	9826.97		997.001		99.9138		286.398	
+2:  Locking A	18923		2504.3		264.01		604.462	
+2:  Locking B	44190.2		5267.41		555.743		1862.22	
+2:  OCC      	45354.5		4968.2		589.473		1749.76	
+2:  OCC-P    	44770.7		4736.65		586.026		1712.43	
+2:  MVCC     	15549.5		1751.86		194.852		397.83	
+2: 
+2: 		            High contention read-write (10 records)
+2: 		-------------------------------------------------------------------
+2:  Serial   	9689.1		996.005		99.8824		307.57	
+2:  Locking A	8875.05		1252.61		129.677		350.803	
+2:  Locking B	44971.4		5107.53		546.902		1627.52	
+2:  OCC      	44896.2		4690.73		586.644		1948.77	
+2:  OCC-P    	41905.1		5079.05		574.882		1672.36	
+2:  MVCC     	10195.9		1142.64		128.652		263.102	
+2: 
+2: 		            High contention mixed read only/read-write
+2: 		-------------------------------------------------------------------
+2:  Serial   	11836.1		1277.94		126.344		392.294	
+2:  Locking A	7517.42		1183.24		124.965		391.949	
+2:  Locking B
+[HANDLER_OUTPUT] 
+2/
+3 Test #2: txn_processor_test ...............***Exception: SIGHUP853.56 sec
+[HANDLER_VERBOSE_OUTPUT] 
+test 3
+
+[HANDLER_OUTPUT] 
+    Start 3: txn_types_test
+
+[HANDLER_VERBOSE_OUTPUT] 
+
+3: Test command: /home/chujun/a2-agaur03/a2/build/src/txn_types_test
+
+3: Test timeout computed to be: 10000000
+3: Running tests for mode:  Serial   
+3: [ NoopTest ] [1;32mBEGIN[0m
+3: [ NoopTest ] [1;32mPASS[0m
+3: [ PutTest ] [1;32mBEGIN[0m
+3: [ PutTest ] [1;32mPASS[0m
+3: [ PutMultipleTest ] [1;32mBEGIN[0m
+3: [ PutMultipleTest ] [1;32mPASS[0m
+3: Running tests for mode:  Locking A
+3: [ NoopTest ] [1;32mBEGIN[0m
+3: [ NoopTest ] [1;32mPASS[0m
+3: [ PutTest ] [1;32mBEGIN[0m
+3: [ PutTest ] [1;32mPASS[0m
+3: [ PutMultipleTest ] [1;32mBEGIN[0m
+3: [ PutMultipleTest ] [1;32mPASS[0m
+3: Running tests for mode:  Locking B
+3: [ NoopTest ] [1;32mBEGIN[0m
+3: [ NoopTest ] [1;32mPASS[0m
+3: [ PutTest ] [1;32mBEGIN[0m
+3: [ PutTest ] [1;32mPASS[0m
+3: [ PutMultipleTest ] [1;32mBEGIN[0m
+3: [ PutMultipleTest ] [1;32mPASS[0m
+3: Running tests for mode:  OCC      
+3: [ NoopTest ] [1;32mBEGIN[0m
+3: [ NoopTest ] [1;32mPASS[0m
+3: [ PutTest ] [1;32mBEGIN[0m
+3: [ PutTest ] [1;32mPASS[0m
+3: [ PutMultipleTest ] [1;32mBEGIN[0m
+3: [ PutMultipleTest ] [1;32mPASS[0m
+3: Running tests for mode:  OCC-P    
+3: [ NoopTest ] [1;32mBEGIN[0m
+3: [ NoopTest ] [1;32mPASS[0m
+3: [ PutTest ] [1;32mBEGIN[0m
+3: [ PutTest ] [1;32mPASS[0m
+3: [ PutMultipleTest ] [1;32mBEGIN[0m
+3: [ PutMultipleTest ] [1;32mPASS[0m
+3: Running tests for mode:  MVCC     
+3: [ NoopTest ] [1;32mBEGIN[0m
+3: [ NoopTest ] [1;32mPASS[0m
+3: [ PutTest ] [1;32mBEGIN[0m
+3: [ PutTest ] [1;32mPASS[0m
+3: [ PutMultipleTest ] [1;32mBEGIN[0m
+3: [ PutMultipleTest ] [1;32mPASS[0m
+[HANDLER_OUTPUT] 
+3/
+3 Test #3: txn_types_test ...................   Passed    9.20 sec
+
+67% tests passed, 1 tests failed out of 3
+
+Total Test time (real) = 862.77 sec
+
+The following tests FAILED:
+	  2 - txn_processor_test (SIGHUP)
+[ERROR_MESSAGE] 
+Errors while running CTest
+
