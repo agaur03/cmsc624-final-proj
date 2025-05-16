@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include "lock_manager.h"
+#include "common.h"
 
 // Thread & queue counts for StaticThreadPool initialization.
 #define THREAD_COUNT 8
@@ -323,6 +324,88 @@ void TxnProcessor::ApplyWrites(Txn *txn)
     }
 }
 
+void TxnProcessor::RunCalvinScheduler() { 
+    const int EPOCH_DURATION = 10000; 
+    while (!stopped_.load()) {
+        auto epoch_start = GetTime()
+        vector<Txn*> current_epoch_txns;
+        while (true) {
+            auto now = GetTime;
+            auto elapsed = GetTime();
+            if (elapsed >= EPOCH_DURATION) {
+                break;
+            }
+            
+            Txn* txn;
+            if (txn_requests_.Pop(&txn)) {
+                current_epoch_txns.push_back(txn);
+            } else {
+                break;
+            }
+        }
+        
+        /* Ordering */
+
+        if (!current_epoch_txns.empty()) {
+            for (Txn* txn : current_epoch_txns) {
+                bool blocked = false;
+            
+                for (const Key& key : txn->readset_) {
+                    if (!lm_->ReadLock(txn, key)) {
+                        blocked = true;
+                    }
+                }
+                
+                for (const Key& key : txn->writeset_) {
+                    if (!lm_->WriteLock(txn, key)) {
+                        blocked = true;
+                    }
+                }
+                if (!blocked) {
+                    ready_txns_.push_back(txn);
+                }
+            }
+
+            while (!ready_txns_.empty()) {
+                Txn* txn = ready_txns_.front();
+                ready_txns_.pop_front();
+                
+
+                tp_.AddTask([this, txn]() {
+                    this->ExecuteTxn(txn);
+                
+                    for (const Key& key : txn->readset_) {
+                        lm_->Release(txn, key);
+                    }
+                    for (const Key& key : txn->writeset_) {
+                        lm_->Release(txn, key);
+                    }
+                });
+            }
+            
+            Txn* completed_txn;
+            while (completed_txns_.Pop(&completed_txn)) {
+                if (completed_txn->Status() == COMPLETED_C) {
+                    ApplyWrites(completed_txn);
+                    
+                    mutex_.Lock();
+                    completed_txn->commit_id_ = next_commit_id_++;
+                    mutex_.Unlock();
+                    
+                    completed_txn->status_ = COMMITTED;
+                    committed_txns_.Push(completed_txn);
+                } else if (completed_txn->Status() == COMPLETED_A) {
+                    completed_txn->commit_id_ = UINT64_MAX;
+                    completed_txn->status_ = ABORTED;
+                } else {
+                    DIE("Invalid TxnStatus: " << completed_txn->Status());
+                }
+            
+                txn_results_.Push(completed_txn);
+            }
+        }
+    }
+}
 void TxnProcessor::RunOCCScheduler()
 {
     //
