@@ -69,11 +69,18 @@ class AtomicMap
 
     // Synonym for 'Insert(key, value)'.
     void Set(const K& key, const V& value) { Insert(key, value); }
+
     // Atomically erases any pair with key 'key' from the map.
     void Erase(const K& key)
     {
         mutex_.WriteLock();
         map_.erase(key);
+        mutex_.Unlock();
+    }
+
+    void Clear() {
+        mutex_.WriteLock();
+        map_.clear();
         mutex_.Unlock();
     }
 
@@ -238,6 +245,90 @@ class AtomicQueue
 
    private:
     queue<T> queue_;
+    Mutex mutex_;
+};
+
+/// @class AtomicDeque<T>
+///
+/// Dequeue with atomic push and pop operations.
+///
+/// @TODO(alex): This should use lower-contention synchronization.
+template <typename T>
+class AtomicDeque
+{
+   public:
+    AtomicDeque() {}
+    // Returns the number of elements currently in the dequeue.
+    int Size()
+    {
+        mutex_.Lock();
+        int size = deque_.size();
+        mutex_.Unlock();
+        return size;
+    }
+
+    // Atomically pushes 'item' onto front of the queue.
+    void PushFront(const T& item)
+    {
+        mutex_.Lock();
+        deque_.push_front(item);
+        mutex_.Unlock();
+    }
+
+    // Atomically pushes 'item' onto the back of the queue.
+    void PushBack(const T& item)
+    {
+        mutex_.Lock();
+        deque_.push_back(item);
+        mutex_.Unlock();
+    }
+
+    // Atomically pops item from the front of the queue.
+    bool PopFront(T* result)
+    {
+        mutex_.Lock();
+        if (!deque_.empty()) {
+            *result = deque_.front();
+            deque_.pop_front();
+            mutex_.Unlock();
+            return true;
+        } else {
+            mutex_.Unlock();
+            return false;
+        }
+    }
+
+    // Atomically pops item from the back of the queue.
+    bool PopBack(T* result)
+    {
+        mutex_.Lock();
+        if (!deque_.empty()) {
+            *result = deque_.back();
+            deque_.pop_back();
+            mutex_.Unlock();
+            return true;
+        } else {
+            mutex_.Unlock();
+            return false;
+        }
+    }
+
+    // Atomically pushes 'item' onto the queue -- equivalent to PushBack.
+    void Push(const T& item)
+    {
+        PushBack(item);
+    }
+
+    // If the queue is non-empty, (atomically) sets '*result' equal to the front
+    // element, pops the front element from the queue, and returns true,
+    // otherwise returns false -- equivalent to PopFront.
+    bool Pop(T* result)
+    {
+        return PopFront(result);
+    }
+
+   private:
+    deque<T> deque_;
     Mutex mutex_;
 };
 

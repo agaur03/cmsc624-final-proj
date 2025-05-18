@@ -123,7 +123,7 @@ void Benchmark(const vector<LoadGen*>& lg)
     deque<Txn*> doneTxns;
 
     // For each MODE...
-    for (CCMode mode = CALVIN; mode <= MVCC; mode = static_cast<CCMode>(mode + 1))
+    for (CCMode mode = CALVIN; mode <= ARIA; mode = static_cast<CCMode>(mode + 1))
     {
         // Print out mode name.
         cout << ModeToString(mode) << flush;
@@ -142,17 +142,28 @@ void Benchmark(const vector<LoadGen*>& lg)
                 // Record start time.
                 double start = GetTime();
 
+                // Gyuk
+                // cout << "Starting the transactions!\n" << flush;
+
                 // Start specified number of txns running.
                 for (int i = 0; i < active_txns; i++) p->NewTxnRequest(lg[exp]->NewTxn());
 
                 // Keep 100 active txns at all times for the first full second.
                 while (GetTime() < start + 0.5)
                 {
+                    // Gyuk
+                    // cout << "Waiting for a transaction to finish!\n" << flush;
                     Txn* txn = p->GetTxnResult();
+                    // Gyuk
+                    // cout << "Retrieved the transaction!\n" << flush;
                     doneTxns.push_back(txn);
                     txn_count++;
                     p->NewTxnRequest(lg[exp]->NewTxn());
                 }
+
+                // Gyuk
+                // cout << "The initial set of transactions have run!\n" << flush;
+
 
                 // Wait for all of them to finish.
                 for (int i = 0; i < active_txns; i++)
@@ -186,6 +197,22 @@ void Benchmark(const vector<LoadGen*>& lg)
 
 int main(int argc, char** argv)
 {
+
+    // LoadGen* lg = new RMWLoadGen(1000000, 5, 0, 0.0001);
+
+    // TxnProcessor* p = new TxnProcessor(ARIA);
+    // p->NewTxnRequest(lg->NewTxn());
+    // p->NewTxnRequest(lg->NewTxn());
+    // p->NewTxnRequest(lg->NewTxn());
+    // p->NewTxnRequest(lg->NewTxn());
+    // p->NewTxnRequest(lg->NewTxn());
+    
+    // Txn* txn1 = p->GetTxnResult();
+    // Txn* txn2 = p->GetTxnResult();
+    // Txn* txn3 = p->GetTxnResult();
+    // Txn* txn4 = p->GetTxnResult();
+    // Txn* txn5 = p->GetTxnResult();
+
     cout << "\t\t-------------------------------------------------------------------" << endl;
     cout << "\t\t                Average Transaction Duration" << endl;
     cout << "\t\t-------------------------------------------------------------------" << endl;
