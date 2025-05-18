@@ -1,0 +1,116 @@
+Start testing: May 18 14:56 EDT
+----------------------------------------------------------
+2/3 Testing: txn_processor_test
+2/3 Test: txn_processor_test
+Command: "/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/txn_processor_test"
+Directory: /home/aymanc5297/CMSC624/cmsc624-final-proj/build/src
+"txn_processor_test" start time: May 18 14:56 EDT
+Output:
+----------------------------------------------------------
+		-------------------------------------------------------------------
+		                Average Transaction Duration
+		-------------------------------------------------------------------
+		0.1ms		1ms		10ms		(0.1ms, 1ms, 10ms)
+		-------------------------------------------------------------------
+		            Low contention Read only (5 records)
+		-------------------------------------------------------------------
+ Aria     	13810		2445.31		196.135		577.743	
+
+		            Low contention Read only (30 records)
+		-------------------------------------------------------------------
+ Aria     	12276.2		2399.77		220.668		518.573	
+
+		            High contention Read only (5 records)
+		-------------------------------------------------------------------
+ Aria     	14538.7		2566.69		239.388		572.239	
+
+		            High contention Read only (30 records)
+		-------------------------------------------------------------------
+ Aria     	13287.3		2348.6		211.256		521.663	
+
+		            Low contention read-write (5 records)
+		-------------------------------------------------------------------
+ Aria     	10542.3		1835.53		196.191		412.947	
+
+		            Low contention read-write (10 records)
+		-------------------------------------------------------------------
+ Aria     	8601.27		1565.89		178.15		453.461	
+
+		            High contention read-write (5 records)
+		-------------------------------------------------------------------
+ Aria     	5305.35		1165.22		136.436		283.934	
+
+		            High contention read-write (10 records)
+		-------------------------------------------------------------------
+ Aria     	3186.14		755.016		92.5949		211.326	
+
+		            High contention mixed read only/read-write
+		-------------------------------------------------------------------
+ Aria     	5374.2		1341.31		154.692		380.475	
+
+<end of output>
+Test time =  64.07 sec
+----------------------------------------------------------
+Test Passed.
+"txn_processor_test" end time: May 18 14:57 EDT
+"txn_processor_test" time elapsed: 00:01:04
+----------------------------------------------------------
+
+3/3 Testing: txn_types_test
+3/3 Test: txn_types_test
+Command: "/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/txn_types_test"
+Directory: /home/aymanc5297/CMSC624/cmsc624-final-proj/build/src
+"txn_types_test" start time: May 18 14:57 EDT
+Output:
+----------------------------------------------------------
+Running tests for mode:  Serial   
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  Locking A
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  Locking B
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  OCC      
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  OCC-P    
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  MVCC     
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+<end of output>
+Test time =   8.28 sec
+----------------------------------------------------------
+Test Passed.
+"txn_types_test" end time: May 18 14:57 EDT
+"txn_types_test" time elapsed: 00:00:08
+----------------------------------------------------------
+
+End testing: May 18 14:57 EDT

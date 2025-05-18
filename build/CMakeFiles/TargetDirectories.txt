@@ -1,0 +1,10 @@
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/CMakeFiles/rebuild_cache.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/CMakeFiles/edit_cache.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/CMakeFiles/test.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/CMakeFiles/rebuild_cache.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/CMakeFiles/edit_cache.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/CMakeFiles/test.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/CMakeFiles/txn_types_test.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/CMakeFiles/txn_processor_test.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/CMakeFiles/lock_manager_test.dir
+/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/CMakeFiles/txn.dir
