@@ -28,7 +28,8 @@ enum CCMode
     LOCKING                = 2,  // Part 1B
     OCC                    = 3,  // Part 2
     P_OCC                  = 4,  // Part 3
-    MVCC                   = 5,  // Part 4
+    CALVIN                 = 5,
+    MVCC                   = 6,  // Part 4
 };
 
 // Returns a human-readable string naming of the providing mode.
@@ -73,6 +74,9 @@ class TxnProcessor
 
     // OCC version of scheduler.
     void RunOCCScheduler();
+
+    // Calvin version of scheduler
+    void RunCalvinScheduler();
 
     // OCC version of scheduler with parallel validation.
     void RunOCCParallelScheduler();

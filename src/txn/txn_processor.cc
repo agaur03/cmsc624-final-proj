@@ -1,11 +1,15 @@
 #include "txn_processor.h"
 #include <stdio.h>
 
+#include <chrono>  // Add this at the top of your file
+#include <thread>  // For std::this_thread
+
+
 #include <set>
 #include <unordered_set>
 
 #include "lock_manager.h"
-#include "common.h"
+#include "utils/common.h"
 
 // Thread & queue counts for StaticThreadPool initialization.
 #define THREAD_COUNT 8
@@ -27,6 +31,8 @@ string ModeToString(CCMode mode)
             return " OCC-P    ";
         case MVCC:
             return " MVCC     ";
+        case CALVIN: 
+            return "CALVIN     ";
         default:
             return "INVALID MODE";
     }
@@ -37,7 +43,7 @@ TxnProcessor::TxnProcessor(CCMode mode)
 {
     if (mode_ == LOCKING_EXCLUSIVE_ONLY)
         lm_ = new LockManagerA(&ready_txns_);
-    else if (mode_ == LOCKING)
+    else if (mode_ == LOCKING || mode_ == CALVIN)
         lm_ = new LockManagerB(&ready_txns_);
 
     // Create the storage
@@ -137,6 +143,10 @@ void TxnProcessor::RunScheduler()
             break;
         case MVCC:
             RunMVCCScheduler();
+            break;
+        case CALVIN:
+            RunCalvinScheduler();
+            break;
     }
 }
 
@@ -312,6 +322,7 @@ void TxnProcessor::ExecuteTxn(Txn *txn)
     txn->Run();
 
     // Hand the txn back to the RunScheduler thread.
+   
     completed_txns_.Push(txn);
 }
 
@@ -325,87 +336,146 @@ void TxnProcessor::ApplyWrites(Txn *txn)
 }
 
 void TxnProcessor::RunCalvinScheduler() { 
-    const int EPOCH_DURATION = 10000; 
+    const int EPOCH_DURATION = 10; 
+   
+   
     while (!stopped_.load()) {
-        auto epoch_start = GetTime()
+         std::cout << "Processing " << txn_requests_.Size() << std::endl;
+        auto epoch_start = GetTime();
         vector<Txn*> current_epoch_txns;
+        
+        // Collect transactions for the current epoch
         while (true) {
-            auto now = GetTime;
-            auto elapsed = GetTime();
+            auto now = GetTime();
+            auto elapsed = now - epoch_start;
+            
             if (elapsed >= EPOCH_DURATION) {
                 break;
             }
+
+        
             
             Txn* txn;
             if (txn_requests_.Pop(&txn)) {
                 current_epoch_txns.push_back(txn);
             } else {
-                break;
+                // Add a small sleep to prevent CPU spinning when no transactions are available
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
-        
-        /* Ordering */
 
+        // Process transactions for this epoch
+      
+        
         if (!current_epoch_txns.empty()) {
+            // First phase: Analyze and acquire locks
+            std::vector<Txn*> ready_batch;
+            
             for (Txn* txn : current_epoch_txns) {
                 bool blocked = false;
-            
+                
+                // Request read locks
                 for (const Key& key : txn->readset_) {
                     if (!lm_->ReadLock(txn, key)) {
                         blocked = true;
+                        break;  // Exit early if we can't get a lock
                     }
                 }
                 
-                for (const Key& key : txn->writeset_) {
-                    if (!lm_->WriteLock(txn, key)) {
-                        blocked = true;
-                    }
-                }
+                // If read locks were acquired, try write locks
                 if (!blocked) {
-                    ready_txns_.push_back(txn);
+                    for (const Key& key : txn->writeset_) {
+                        if (!lm_->WriteLock(txn, key)) {
+                            blocked = true;
+                            
+                            // Release any read locks we already acquired
+                            for (const Key& read_key : txn->readset_) {
+                                lm_->Release(txn, read_key);
+                            }
+                            break;
+                        }
+                    }
                 }
-            }
-
-            while (!ready_txns_.empty()) {
-                Txn* txn = ready_txns_.front();
-                ready_txns_.pop_front();
                 
-
-                tp_.AddTask([this, txn]() {
-                    this->ExecuteTxn(txn);
-                
+                // If all locks acquired, add to ready batch
+                if (!blocked) {
+                    ready_batch.push_back(txn);
+                } else {
+                    // Release all locks and try again in next epoch
                     for (const Key& key : txn->readset_) {
                         lm_->Release(txn, key);
                     }
                     for (const Key& key : txn->writeset_) {
                         lm_->Release(txn, key);
                     }
+                    
+                    // Return to txn_requests_ for next epoch
+                    txn_requests_.Push(txn);
+                }
+            }
+            
+            // Second phase: Execute transactions that have all locks
+            for (Txn* txn : ready_batch) {
+                // Instead of pushing to ready_txns, execute directly
+                tp_.AddTask([this, txn]() {
+                    this->ExecuteTxn(txn);
                 });
             }
             
-            Txn* completed_txn;
-            while (completed_txns_.Pop(&completed_txn)) {
-                if (completed_txn->Status() == COMPLETED_C) {
-                    ApplyWrites(completed_txn);
-                    
-                    mutex_.Lock();
-                    completed_txn->commit_id_ = next_commit_id_++;
-                    mutex_.Unlock();
-                    
-                    completed_txn->status_ = COMMITTED;
-                    committed_txns_.Push(completed_txn);
-                } else if (completed_txn->Status() == COMPLETED_A) {
-                    completed_txn->commit_id_ = UINT64_MAX;
-                    completed_txn->status_ = ABORTED;
-                } else {
-                    DIE("Invalid TxnStatus: " << completed_txn->Status());
-                }
+            // Third phase: Wait for execution to complete
+            size_t completed_count = 0;
+            auto wait_start = GetTime();
+            const int MAX_WAIT_TIME = 5000; // 5 seconds max wait time
             
-                txn_results_.Push(completed_txn);
+            while (completed_count < ready_batch.size()) {
+                Txn* completed_txn;
+                if (completed_txns_.Pop(&completed_txn)) {
+                    completed_count++;
+                    
+                    // Process the completed transaction
+                    if (completed_txn->Status() == COMPLETED_C) {
+                        ApplyWrites(completed_txn);
+                        
+                        // Assign commit ID and update status
+                        mutex_.Lock();
+                        completed_txn->commit_id_ = next_commit_id_++;
+                        mutex_.Unlock();
+                        
+                        completed_txn->status_ = COMMITTED;
+                        committed_txns_.Push(completed_txn);
+                    } else if (completed_txn->Status() == COMPLETED_A) {
+                        completed_txn->commit_id_ = UINT64_MAX;
+                        completed_txn->status_ = ABORTED;
+                    } else {
+                        DIE("Invalid TxnStatus: " << completed_txn->Status());
+                    }
+                    
+                    // Release all locks
+                    for (const Key& key : completed_txn->readset_) {
+                        lm_->Release(completed_txn, key);
+                    }
+                    for (const Key& key : completed_txn->writeset_) {
+                        lm_->Release(completed_txn, key);
+                    }
+                    
+                    // Return result
+                    txn_results_.Push(completed_txn);
+                } else {
+                    // Check for timeout
+                    auto now = GetTime();
+                    if (now - wait_start > MAX_WAIT_TIME) {
+                        std::cout << "Warning: Timeout waiting for transactions to complete" << std::endl;
+                        break;
+                    }
+                    
+                    // Short sleep to avoid spinning
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                }
             }
         }
     }
 }
+
 void TxnProcessor::RunOCCScheduler()
 {
     //
