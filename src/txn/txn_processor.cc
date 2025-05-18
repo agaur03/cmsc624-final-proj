@@ -336,103 +336,120 @@ void TxnProcessor::ApplyWrites(Txn *txn)
 }
 
 void TxnProcessor::RunCalvinScheduler() { 
-    const float EPOCH_DURATION = 0.01; 
+    const float EPOCH_DURATION = 0.01;
+    Txn* txn; 
    
     while (!stopped_.load()) {
         auto epoch_start = GetTime();
         vector<Txn*> current_epoch_txns;
         
-        while (true) {
-            auto now = GetTime();
-            auto elapsed = now - epoch_start;
-            
-            if (elapsed >= EPOCH_DURATION) {
-                break;
-            }
-            
-            Txn* txn;
+        while (GetTime() - epoch_start <= EPOCH_DURATION) {
             if (txn_requests_.Pop(&txn)) {
                 current_epoch_txns.push_back(txn);
             } 
         }
-      
-        if (!current_epoch_txns.empty()) {
-            std::vector<Txn*> ready_batch;
+
+        // Consider doing shuffling here to do "global ordering"
+        
+        for (Txn* curr_txn : current_epoch_txns) {
+            bool blocked = false;
             
-            for (Txn* txn : current_epoch_txns) {
-                bool blocked = false;
-                std::vector<Key> acquired_read_locks;
-                std::vector<Key> acquired_write_locks;
-                
-                for (const Key& key : txn->readset_) {
-                    if (!lm_->ReadLock(txn, key)) {
-                        blocked = true;
-                        break;
-                    }
-                    acquired_read_locks.push_back(key);
-                }
-                
-                if (!blocked) {
-                    for (const Key& key : txn->writeset_) {
-                        if (!lm_->WriteLock(txn, key)) {
-                            blocked = true;
-                            break;
-                        }
-                        acquired_write_locks.push_back(key);
-                    }
-                }
-                
-                if (!blocked) {
-                    ready_batch.push_back(txn);
-                } else {
-                   
-                    txn_requests_.Push(txn);
+            for (const Key& key : curr_txn->readset_) {
+                if (!lm_->ReadLock(curr_txn, key)) {
+                    blocked = true;
                 }
             }
             
-         
-            for (Txn* txn : ready_batch) {
-                tp_.AddTask([this, txn]() {
-                    this->ExecuteTxn(txn);
-                });
+            for (const Key& key : curr_txn->writeset_) {
+                if (!lm_->WriteLock(curr_txn, key)) {
+                    blocked = true;
+                }
             }
-            
-    
-            size_t completed_count = 0;
-            
-            while (completed_count < ready_batch.size()) {
-                Txn* completed_txn;
-                if (completed_txns_.Pop(&completed_txn)) {
-                   
-                    completed_count++;
-                    
-                    if (completed_txn->Status() == COMPLETED_C) {
-                        ApplyWrites(completed_txn);
-                        
-                        mutex_.Lock();
-                        completed_txn->commit_id_ = next_commit_id_++;
-                        mutex_.Unlock();
-                        
-                        completed_txn->status_ = COMMITTED;
-                        committed_txns_.Push(completed_txn);
-                    } else if (completed_txn->Status() == COMPLETED_A) {
-                        completed_txn->commit_id_ = UINT64_MAX;
-                        completed_txn->status_ = ABORTED;
-                    } else {
-                        DIE("Invalid TxnStatus: " << completed_txn->Status());
-                    }
-                    
-                    for (const Key& key : completed_txn->readset_) {
-                        lm_->Release(completed_txn, key);
-                    }
-                    for (const Key& key : completed_txn->writeset_) {
-                        lm_->Release(completed_txn, key);
-                    }
-                    
-                    txn_results_.Push(completed_txn);
-                } 
+
+            if (!blocked) {
+                ready_txns_.push_back(curr_txn);
             }
         }
+
+        while (completed_txns_.Pop(&txn)) {
+            /*
+            the commit_id_ is incremented here rather than inside one or more of the conditionals since 
+            the commit id is not determined when a commit occurs but rather when a commit possibly can occur,
+            so it should incremented regardless of which conditional occurs
+            */
+            commit_id_mutex_.Lock();
+            txn->commit_id_ = next_commit_id_;
+            next_commit_id_++;
+            commit_id_mutex_.Unlock();
+
+            if (txn->Status() == COMPLETED_C) {
+                ApplyWrites(txn);
+                txn->status_ = COMMITTED;
+                committed_txns_.Push(txn);
+            } else if (txn->Status() == COMPLETED_A) {
+                // set the commit_id for the transaction to UINT64_MAX because it is aborted
+                txn->commit_id_ = UINT64_MAX;
+                
+                txn->status_ = ABORTED;
+            } else {
+                DIE("Completed Txn has invalid TxnStatus: " << txn->Status());
+            }
+
+            for (const Key& key : txn->readset_) {
+                lm_->Release(txn, key);
+            }
+            for (const Key& key : txn->writeset_) {
+                lm_->Release(txn, key);
+            }
+
+            txn_results_.Push(txn);
+
+        }
+
+        while (ready_txns_.size()) {
+            Txn* ready_txn = ready_txns_.front();
+            ready_txns_.pop_front();
+            
+            // Start txn running in its own thread.
+            tp_.AddTask([this, ready_txn]()
+                        { this->ExecuteTxn(ready_txn); });
+        }
+        
+
+        // size_t completed_count = 0;
+        
+        // while (completed_count < ready_batch.size()) {
+        //     Txn* completed_txn;
+        //     if (completed_txns_.Pop(&completed_txn)) {
+                
+        //         completed_count++;
+                
+        //         if (completed_txn->Status() == COMPLETED_C) {
+        //             ApplyWrites(completed_txn);
+                    
+        //             mutex_.Lock();
+        //             completed_txn->commit_id_ = next_commit_id_++;
+        //             mutex_.Unlock();
+                    
+        //             completed_txn->status_ = COMMITTED;
+        //             committed_txns_.Push(completed_txn);
+        //         } else if (completed_txn->Status() == COMPLETED_A) {
+        //             completed_txn->commit_id_ = UINT64_MAX;
+        //             completed_txn->status_ = ABORTED;
+        //         } else {
+        //             DIE("Invalid TxnStatus: " << completed_txn->Status());
+        //         }
+                
+        //         for (const Key& key : completed_txn->readset_) {
+        //             lm_->Release(completed_txn, key);
+        //         }
+        //         for (const Key& key : completed_txn->writeset_) {
+        //             lm_->Release(completed_txn, key);
+        //         }
+                
+        //         txn_results_.Push(completed_txn);
+        //     } 
+        // }
     }
 }
 
