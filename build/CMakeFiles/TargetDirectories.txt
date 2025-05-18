@@ -1,0 +1,10 @@
+/workspaces/cmsc624-final-proj/build/CMakeFiles/rebuild_cache.dir
+/workspaces/cmsc624-final-proj/build/CMakeFiles/edit_cache.dir
+/workspaces/cmsc624-final-proj/build/CMakeFiles/test.dir
+/workspaces/cmsc624-final-proj/build/src/CMakeFiles/rebuild_cache.dir
+/workspaces/cmsc624-final-proj/build/src/CMakeFiles/edit_cache.dir
+/workspaces/cmsc624-final-proj/build/src/CMakeFiles/test.dir
+/workspaces/cmsc624-final-proj/build/src/CMakeFiles/txn_types_test.dir
+/workspaces/cmsc624-final-proj/build/src/CMakeFiles/txn_processor_test.dir
+/workspaces/cmsc624-final-proj/build/src/CMakeFiles/lock_manager_test.dir
+/workspaces/cmsc624-final-proj/build/src/CMakeFiles/txn.dir
