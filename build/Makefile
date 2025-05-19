@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /workspaces/cmsc624-final-proj
+CMAKE_SOURCE_DIR = /home/aymanc5297/CMSC624/cmsc624-final-proj
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /workspaces/cmsc624-final-proj/build
+CMAKE_BINARY_DIR = /home/aymanc5297/CMSC624/cmsc624-final-proj/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -91,9 +91,9 @@ test/fast: test
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/cmsc624-final-proj/build/CMakeFiles /workspaces/cmsc624-final-proj/build/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/aymanc5297/CMSC624/cmsc624-final-proj/build/CMakeFiles /home/aymanc5297/CMSC624/cmsc624-final-proj/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /workspaces/cmsc624-final-proj/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/aymanc5297/CMSC624/cmsc624-final-proj/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

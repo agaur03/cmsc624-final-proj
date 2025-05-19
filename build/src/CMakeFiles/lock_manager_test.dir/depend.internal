@@ -4,5 +4,5 @@
 src/CMakeFiles/lock_manager_test.dir/txn/lock_manager_test.cc.o
  ../src/utils/common.h
  ../src/utils/testing.h
- /workspaces/cmsc624-final-proj/src/txn/lock_manager.h
- /workspaces/cmsc624-final-proj/src/txn/lock_manager_test.cc
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/lock_manager.h
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/lock_manager_test.cc

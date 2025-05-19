@@ -8,10 +8,10 @@ src/CMakeFiles/txn_types_test.dir/txn/txn_types_test.cc.o
  ../src/utils/static_thread_pool.h
  ../src/utils/testing.h
  ../src/utils/thread_pool.h
- /workspaces/cmsc624-final-proj/src/txn/lock_manager.h
- /workspaces/cmsc624-final-proj/src/txn/mvcc_storage.h
- /workspaces/cmsc624-final-proj/src/txn/storage.h
- /workspaces/cmsc624-final-proj/src/txn/txn.h
- /workspaces/cmsc624-final-proj/src/txn/txn_processor.h
- /workspaces/cmsc624-final-proj/src/txn/txn_types.h
- /workspaces/cmsc624-final-proj/src/txn/txn_types_test.cc
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/lock_manager.h
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/mvcc_storage.h
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/storage.h
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/txn.h
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/txn_processor.h
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/txn_types.h
+ /home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/txn_types_test.cc

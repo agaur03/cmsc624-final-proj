@@ -1,4 +1,4 @@
-# Install script for directory: /workspaces/cmsc624-final-proj/src
+# Install script for directory: /home/aymanc5297/CMSC624/cmsc624-final-proj/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

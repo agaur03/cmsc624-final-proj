@@ -36,7 +36,7 @@ string ModeToString(CCMode mode)
         case CALVIN: 
             return "CALVIN     ";
         case ARIA:
-            return " Aria     ";
+            return "ARIA      ";
         default:
             return "INVALID MODE";
     }
@@ -362,7 +362,14 @@ void TxnProcessor::RunCalvinScheduler() {
         }
 
        
-        // Global ordering
+        /*
+        simulates global ordering -- in an actual system, this node would sent out those transactions
+        that read/write data that are applicable to other nodes to such nodes and would receive transactions
+        from other nodes that read/write data that are applicable to this node, but there are no actual nodes
+        running in this implementation besides this one, so we treat this node's batch as all the transactions 
+        that are applicable to it and shuffle them to represent the "global ordering" that was decided outside
+        transactional boundaries
+        */
         auto rng = std::default_random_engine {};
         std::shuffle(std::begin(current_epoch_txns), std::end(current_epoch_txns), rng);
         
@@ -429,42 +436,6 @@ void TxnProcessor::RunCalvinScheduler() {
             tp_.AddTask([this, ready_txn]()
                         { this->ExecuteTxn(ready_txn); });
         }
-        
-
-        // size_t completed_count = 0;
-        
-        // while (completed_count < ready_batch.size()) {
-        //     Txn* completed_txn;
-        //     if (completed_txns_.Pop(&completed_txn)) {
-                
-        //         completed_count++;
-                
-        //         if (completed_txn->Status() == COMPLETED_C) {
-        //             ApplyWrites(completed_txn);
-                    
-        //             mutex_.Lock();
-        //             completed_txn->commit_id_ = next_commit_id_++;
-        //             mutex_.Unlock();
-                    
-        //             completed_txn->status_ = COMMITTED;
-        //             committed_txns_.Push(completed_txn);
-        //         } else if (completed_txn->Status() == COMPLETED_A) {
-        //             completed_txn->commit_id_ = UINT64_MAX;
-        //             completed_txn->status_ = ABORTED;
-        //         } else {
-        //             DIE("Invalid TxnStatus: " << completed_txn->Status());
-        //         }
-                
-        //         for (const Key& key : completed_txn->readset_) {
-        //             lm_->Release(completed_txn, key);
-        //         }
-        //         for (const Key& key : completed_txn->writeset_) {
-        //             lm_->Release(completed_txn, key);
-        //         }
-                
-        //         txn_results_.Push(completed_txn);
-        //     } 
-        // }
     }
 }
 
@@ -493,8 +464,10 @@ void TxnProcessor::ExecuteTxnAria(Txn* txn) {
     if (txn->Status() == COMPLETED_A) {
         // set the commit_id for the transaction to UINT64_MAX because it is aborted
         txn->commit_id_ = UINT64_MAX;
-        
         txn->status_ = ABORTED;
+
+        // return result to client
+        txn_results_.Push(txn);
     }
     else if (txn->Status() == COMPLETED_C) {
         bool aborted_status = false;
@@ -558,10 +531,6 @@ void TxnProcessor::ExecuteTxnAria(Txn* txn) {
 }
 
 void TxnProcessor::CommitTxnAria(Txn* txn) {
-    // Gyuk
-    // printf("Gyuk!\n");
-    // fflush(stdout);
-
     bool has_found_conflict = false;
     auto readset_iterator = txn->readset_.begin();
 
@@ -651,23 +620,11 @@ void TxnProcessor::RunAriaScheduler() {
         vector<Txn*> current_epoch_txns;
 
         while (GetTime() - epoch_start <= EPOCH_DURATION) {
-            // Gyuk
-            // printf("Loop has executed!\n");
-            // fflush(stdout);
-
             if (txn_requests_.Pop(&txn)) {
-                // Gyuk
-                // printf("Popped a transaction!\n");
-                // fflush(stdout);
-
                 current_epoch_txns.push_back(txn);
                 batch_txns_to_execute = batch_txns_to_execute + 1;
             }
         }
-
-        // Gyuk
-        // printf("The number of executions to examine in the execution phase: %d\n", batch_txns_to_execute);
-        // fflush(stdout);
 
         // executes the execution phase for all transactions in the current batch
         pthread_mutex_lock(&batch_mutex);
@@ -683,17 +640,9 @@ void TxnProcessor::RunAriaScheduler() {
         }
         pthread_mutex_unlock(&batch_mutex);
 
-        // Gyuk
-        // printf("Finished the Execution Phase!\n");
-        // fflush(stdout);
-
         // executes the commit phase for those transactions that could possibly commit (stored in completed_txns_)
         pthread_mutex_lock(&batch_mutex);
         batch_txns_to_execute = completed_txns_.Size();
-
-        // Gyuk
-        // printf("The number of transactions to examine in the commit phase: %d\n", batch_txns_to_execute);
-        // fflush(stdout);
 
         while (completed_txns_.Pop(&txn)) {
             tp_.AddTask([this, txn]()
@@ -705,10 +654,6 @@ void TxnProcessor::RunAriaScheduler() {
             pthread_cond_wait(&batch_cond, &batch_mutex);
         }
         pthread_mutex_unlock(&batch_mutex);
-
-        // Gyuk
-        // printf("Finished the Commit Phase!\n");
-        // fflush(stdout);
     }
 }
 

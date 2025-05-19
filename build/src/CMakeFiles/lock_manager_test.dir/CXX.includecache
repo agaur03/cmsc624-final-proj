@@ -32,7 +32,7 @@ stdio.h
 iostream
 -
 
-/workspaces/cmsc624-final-proj/src/txn/lock_manager.h
+/home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/lock_manager.h
 deque
 -
 map
@@ -42,15 +42,15 @@ unordered_map
 vector
 -
 utils/common.h
-/workspaces/cmsc624-final-proj/src/txn/utils/common.h
+/home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/utils/common.h
 
-/workspaces/cmsc624-final-proj/src/txn/lock_manager_test.cc
+/home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/lock_manager_test.cc
 lock_manager.h
-/workspaces/cmsc624-final-proj/src/txn/lock_manager.h
+/home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/lock_manager.h
 set
 -
 string
 -
 utils/testing.h
-/workspaces/cmsc624-final-proj/src/txn/utils/testing.h
+/home/aymanc5297/CMSC624/cmsc624-final-proj/src/txn/utils/testing.h
 

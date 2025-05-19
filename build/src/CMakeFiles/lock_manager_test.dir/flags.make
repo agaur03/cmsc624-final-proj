@@ -6,5 +6,5 @@ CXX_FLAGS = -Wall -std=c++11 -fPIC -Wno-unused-but-set-variable -Wno-maybe-unini
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/workspaces/cmsc624-final-proj/src 
+CXX_INCLUDES = -I/home/aymanc5297/CMSC624/cmsc624-final-proj/src 
 

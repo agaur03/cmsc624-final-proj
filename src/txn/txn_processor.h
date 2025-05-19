@@ -28,9 +28,9 @@ enum CCMode
     LOCKING                = 2,  // Part 1B
     OCC                    = 3,  // Part 2
     P_OCC                  = 4,  // Part 3
-    CALVIN                 = 5,
-    MVCC                   = 7,  // Part 4
-    ARIA                   = 6,  
+    MVCC                   = 5,  // Part 4
+    CALVIN                 = 6,
+    ARIA                   = 7,  
 };
 
 // Returns a human-readable string naming of the providing mode.
@@ -169,7 +169,11 @@ class TxnProcessor
     // Stores the reservation table for the transactions of the current batch in Aria. 
     AtomicMap<Key, Value> reservation_table_;
 
-    // Used to ensure that the commit phase of Aria does not occur until all transactions have done their execution phase.
+    /* 
+    Used to ensure that the commit phase of Aria does not occur until all transactions have done their execution phase
+    and that the scheduler does not move on to the next batch until all transactions in the current batch have done their
+    commit phase. 
+    */
     int batch_txns_to_execute;
     pthread_mutex_t batch_mutex;
     pthread_cond_t batch_cond; 

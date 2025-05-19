@@ -1,4 +1,4 @@
-# Install script for directory: /workspaces/cmsc624-final-proj
+# Install script for directory: /home/aymanc5297/CMSC624/cmsc624-final-proj
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/workspaces/cmsc624-final-proj/build/src/cmake_install.cmake")
+  include("/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/cmake_install.cmake")
 
 endif()
 
@@ -51,5 +51,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/workspaces/cmsc624-final-proj/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/aymanc5297/CMSC624/cmsc624-final-proj/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
