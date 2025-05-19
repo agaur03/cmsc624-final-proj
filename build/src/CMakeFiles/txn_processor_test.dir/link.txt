@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall -std=c++11 -fPIC -Wno-unused-but-set-variable -Wno-maybe-uninitialized -O3 -DNDEBUG  -rdynamic CMakeFiles/txn_processor_test.dir/txn/txn_processor_test.cc.o  -o txn_processor_test  libtxn.a -lpthread 

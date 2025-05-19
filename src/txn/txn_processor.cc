@@ -1,10 +1,17 @@
 #include "txn_processor.h"
 #include <stdio.h>
 
+#include <chrono>  // Add this at the top of your file
+#include <thread>  // For std::this_thread
+#include <algorithm>
+#include <random>
+
+
 #include <set>
 #include <unordered_set>
 
 #include "lock_manager.h"
+#include "utils/common.h"
 
 // Thread & queue counts for StaticThreadPool initialization.
 #define THREAD_COUNT 8
@@ -26,6 +33,10 @@ string ModeToString(CCMode mode)
             return " OCC-P    ";
         case MVCC:
             return " MVCC     ";
+        case CALVIN: 
+            return "CALVIN     ";
+        case ARIA:
+            return "ARIA      ";
         default:
             return "INVALID MODE";
     }
@@ -36,7 +47,7 @@ TxnProcessor::TxnProcessor(CCMode mode)
 {
     if (mode_ == LOCKING_EXCLUSIVE_ONLY)
         lm_ = new LockManagerA(&ready_txns_);
-    else if (mode_ == LOCKING)
+    else if (mode_ == LOCKING || mode_ == CALVIN)
         lm_ = new LockManagerB(&ready_txns_);
 
     // Create the storage
@@ -52,6 +63,11 @@ TxnProcessor::TxnProcessor(CCMode mode)
     storage_->InitStorage();
 
     // Start 'RunScheduler()' running.
+
+    // initializes Aria-related variables
+    batch_txns_to_execute = 0;
+    pthread_mutex_init(&batch_mutex, NULL);
+    pthread_cond_init(&batch_cond, NULL);
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -136,6 +152,13 @@ void TxnProcessor::RunScheduler()
             break;
         case MVCC:
             RunMVCCScheduler();
+            break;
+        case CALVIN:
+            RunCalvinScheduler();
+            break;
+        case ARIA:
+            RunAriaScheduler();
+            break;
     }
 }
 
@@ -311,6 +334,7 @@ void TxnProcessor::ExecuteTxn(Txn *txn)
     txn->Run();
 
     // Hand the txn back to the RunScheduler thread.
+   
     completed_txns_.Push(txn);
 }
 
@@ -320,6 +344,316 @@ void TxnProcessor::ApplyWrites(Txn *txn)
     for (map<Key, Value>::iterator it = txn->writes_.begin(); it != txn->writes_.end(); ++it)
     {
         storage_->Write(it->first, it->second, txn->unique_id_);
+    }
+}
+
+void TxnProcessor::RunCalvinScheduler() { 
+    const float EPOCH_DURATION = 0.01;
+    Txn* txn; 
+   
+    while (!stopped_.load()) {
+        auto epoch_start = GetTime();
+        vector<Txn*> current_epoch_txns;
+        
+        while (GetTime() - epoch_start <= EPOCH_DURATION) {
+            if (txn_requests_.Pop(&txn)) {
+                current_epoch_txns.push_back(txn);
+            } 
+        }
+
+       
+        /*
+        simulates global ordering -- in an actual system, this node would sent out those transactions
+        that read/write data that are applicable to other nodes to such nodes and would receive transactions
+        from other nodes that read/write data that are applicable to this node, but there are no actual nodes
+        running in this implementation besides this one, so we treat this node's batch as all the transactions 
+        that are applicable to it and shuffle them to represent the "global ordering" that was decided outside
+        transactional boundaries
+        */
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(current_epoch_txns), std::end(current_epoch_txns), rng);
+        
+        for (Txn* curr_txn : current_epoch_txns) {
+            bool blocked = false;
+            
+            for (const Key& key : curr_txn->readset_) {
+                if (!lm_->ReadLock(curr_txn, key)) {
+                    blocked = true;
+                }
+            }
+            
+            for (const Key& key : curr_txn->writeset_) {
+                if (!lm_->WriteLock(curr_txn, key)) {
+                    blocked = true;
+                }
+            }
+
+            if (!blocked) {
+                ready_txns_.push_back(curr_txn);
+            }
+        }
+
+        while (completed_txns_.Pop(&txn)) {
+            /*
+            the commit_id_ is incremented here rather than inside one or more of the conditionals since 
+            the commit id is not determined when a commit occurs but rather when a commit possibly can occur,
+            so it should incremented regardless of which conditional occurs
+            */
+            commit_id_mutex_.Lock();
+            txn->commit_id_ = next_commit_id_;
+            next_commit_id_++;
+            commit_id_mutex_.Unlock();
+
+            if (txn->Status() == COMPLETED_C) {
+                ApplyWrites(txn);
+                txn->status_ = COMMITTED;
+                committed_txns_.Push(txn);
+            } else if (txn->Status() == COMPLETED_A) {
+                // set the commit_id for the transaction to UINT64_MAX because it is aborted
+                txn->commit_id_ = UINT64_MAX;
+                
+                txn->status_ = ABORTED;
+            } else {
+                DIE("Completed Txn has invalid TxnStatus: " << txn->Status());
+            }
+
+            for (const Key& key : txn->readset_) {
+                lm_->Release(txn, key);
+            }
+            for (const Key& key : txn->writeset_) {
+                lm_->Release(txn, key);
+            }
+
+            txn_results_.Push(txn);
+
+        }
+
+        while (ready_txns_.size()) {
+            Txn* ready_txn = ready_txns_.front();
+            ready_txns_.pop_front();
+            
+            // Start txn running in its own thread.
+            tp_.AddTask([this, ready_txn]()
+                        { this->ExecuteTxn(ready_txn); });
+        }
+    }
+}
+
+void TxnProcessor::ExecuteTxnAria(Txn* txn) {
+    // Read everything in from readset.
+    for (set<Key>::iterator it = txn->readset_.begin(); it != txn->readset_.end(); ++it)
+    {
+        // Save each read result iff record exists in storage.
+        Value result;
+        if (storage_->Read(*it, &result))
+            txn->reads_[*it] = result;
+    }
+
+    // Also read everything in from writeset.
+    for (set<Key>::iterator it = txn->writeset_.begin(); it != txn->writeset_.end(); ++it)
+    {
+        // Save each read result iff record exists in storage.
+        Value result;
+        if (storage_->Read(*it, &result))
+            txn->reads_[*it] = result;
+    }
+
+    // Execute txn's program logic.
+    txn->Run();
+
+    if (txn->Status() == COMPLETED_A) {
+        // set the commit_id for the transaction to UINT64_MAX because it is aborted
+        txn->commit_id_ = UINT64_MAX;
+        txn->status_ = ABORTED;
+
+        // return result to client
+        txn_results_.Push(txn);
+    }
+    else if (txn->Status() == COMPLETED_C) {
+        bool aborted_status = false;
+
+        for (set<Key>::iterator it = txn->writeset_.begin(); it != txn->writeset_.end(); ++it) {
+            // check to see if the key exists in the reservation table 
+            Value val; 
+
+            if (reservation_table_.Lookup(*it, &val)) {
+                // the transaction has a conflict with an earlier transaction, so it must abort 
+                if (val < txn->unique_id_) {
+                    aborted_status = true;
+                }
+                else {
+                    /*
+                    the current transaction is currently the earliest transaction to attempt a reservation on the key
+                    so we can insert it into the reservation table
+                    */
+                    reservation_table_.Insert(*it, txn->unique_id_);
+                }
+            }
+            else {
+                // no transaction has a reservation on the key, so we can insert it into the reservation table
+                reservation_table_.Insert(*it, txn->unique_id_);
+            }
+        }
+
+        /*
+        if the transaction has a conflict with an earlier transaction, then it is restarted for the next batch --
+        note that although the transaction aborted, it still went through all its reservations 
+        */
+        if (aborted_status) {
+            // reset the transaction since it will be executed again in the next batch
+            txn->reads_.clear();
+            txn->writes_.clear();
+            txn->status_ = INCOMPLETE;
+
+            // scheduling an aborted transaction to the next batch for execution
+            txn_requests_.PushFront(txn);
+        }
+        else {
+            // stores those transactions which have not aborted after the execution phase
+            completed_txns_.Push(txn);
+        }
+    }
+    else {
+        // Invalid TxnStatus!
+        DIE("Completed Txn has invalid TxnStatus: " << txn->Status());
+    }
+
+    /*
+    at this point, the transaction has finished its execution phase, so we can decrement the number of transactions
+    to execute in the current batch and signal the conditional variable to wake up the scheduler thread to check 
+    whether all transactions in the current batch have finished their execution phase
+    */
+    pthread_mutex_lock(&batch_mutex);
+    batch_txns_to_execute = batch_txns_to_execute - 1;
+    pthread_cond_signal(&batch_cond);
+    pthread_mutex_unlock(&batch_mutex);
+
+}
+
+void TxnProcessor::CommitTxnAria(Txn* txn) {
+    bool has_found_conflict = false;
+    auto readset_iterator = txn->readset_.begin();
+
+    while (!has_found_conflict && readset_iterator != txn->readset_.end()) {
+        Value val; 
+
+        // check to see if the key exists in the reservation table
+        if (reservation_table_.Lookup(*readset_iterator, &val)) {
+            // the transaction has a conflict with an earlier transaction, so it must abort 
+            if (val < txn->unique_id_) {
+                has_found_conflict = true;
+            }
+        }
+
+        readset_iterator++;
+    }
+
+    auto writeset_iterator = txn->writeset_.begin();
+    while (!has_found_conflict && writeset_iterator != txn->writeset_.end()) {
+        Value val; 
+
+        // check to see if the key exists in the reservation table
+        if (reservation_table_.Lookup(*writeset_iterator, &val)) {
+            // the transaction has a conflict with an earlier transaction, so it must abort 
+            if (val < txn->unique_id_) {
+                has_found_conflict = true;
+            }
+        }
+
+        writeset_iterator++;
+    }
+
+    if (has_found_conflict) {
+        // reset the transaction since it will be executed again in the next batch
+        txn->reads_.clear();
+        txn->writes_.clear();
+        txn->status_ = INCOMPLETE;
+
+        // scheduling an aborted transaction to the next batch for execution
+        txn_requests_.PushFront(txn);
+    }
+    else {
+        // apply the current transaction's mofifications to storage
+        ApplyWrites(txn);
+
+        // establishes when the transaction was committed and sets its status to committed
+        txn->status_ = COMMITTED;
+        commit_id_mutex_.Lock();
+        txn->commit_id_ = next_commit_id_;
+        next_commit_id_++;
+        commit_id_mutex_.Unlock();
+
+        // puts the current transaction, which has been committed, in the list of committed transactions
+        committed_txns_.Push(txn);
+
+        // return result to client
+        txn_results_.Push(txn);
+    }
+
+    /*
+    at this point, the transaction has finished its commit phase, so we can decrement the number of transactions
+    to execute in the current batch and signal the conditional variable to wake up the scheduler thread to check 
+    whether all transactions in the current batch have finished their commit phase
+    */
+    pthread_mutex_lock(&batch_mutex);
+    batch_txns_to_execute = batch_txns_to_execute - 1;
+    pthread_cond_signal(&batch_cond);
+    pthread_mutex_unlock(&batch_mutex);
+}
+
+
+void TxnProcessor::RunAriaScheduler() { 
+    const int EPOCH_DURATION = 0.01; 
+    Txn* txn;
+    
+    while (!stopped_.load()) {
+        // reservation table restarts for every new batch
+        reservation_table_.Clear();
+        /*
+        the number of transactions to execute in the current batch restarts for every new batch --
+        no need to use a lock here since a batch is executed with each iteration of the overall
+        while loop, so no other threads are accessing this variable
+        */
+        batch_txns_to_execute = 0;
+
+        auto epoch_start = GetTime();
+        vector<Txn*> current_epoch_txns;
+
+        while (GetTime() - epoch_start <= EPOCH_DURATION) {
+            if (txn_requests_.Pop(&txn)) {
+                current_epoch_txns.push_back(txn);
+                batch_txns_to_execute = batch_txns_to_execute + 1;
+            }
+        }
+
+        // executes the execution phase for all transactions in the current batch
+        pthread_mutex_lock(&batch_mutex);
+
+        for (Txn* curr_txn : current_epoch_txns) {
+            tp_.AddTask([this, curr_txn]()
+                        { this->ExecuteTxnAria(curr_txn); });
+        }
+
+        // waits for all transactions to finish the execution phase before moving on to the commit phase
+        while (batch_txns_to_execute > 0) {
+            pthread_cond_wait(&batch_cond, &batch_mutex);
+        }
+        pthread_mutex_unlock(&batch_mutex);
+
+        // executes the commit phase for those transactions that could possibly commit (stored in completed_txns_)
+        pthread_mutex_lock(&batch_mutex);
+        batch_txns_to_execute = completed_txns_.Size();
+
+        while (completed_txns_.Pop(&txn)) {
+            tp_.AddTask([this, txn]()
+                        { this->CommitTxnAria(txn); });
+        }
+
+        // waits for all transactions to finish the commit phase before moving on to the next batch
+        while (batch_txns_to_execute > 0) {
+            pthread_cond_wait(&batch_cond, &batch_mutex);
+        }
+        pthread_mutex_unlock(&batch_mutex);
     }
 }
 

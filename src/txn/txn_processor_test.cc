@@ -123,7 +123,7 @@ void Benchmark(const vector<LoadGen*>& lg)
     deque<Txn*> doneTxns;
 
     // For each MODE...
-    for (CCMode mode = SERIAL; mode <= MVCC; mode = static_cast<CCMode>(mode + 1))
+    for (CCMode mode = CALVIN; mode <= ARIA; mode = static_cast<CCMode>(mode + 1))
     {
         // Print out mode name.
         cout << ModeToString(mode) << flush;
@@ -142,6 +142,7 @@ void Benchmark(const vector<LoadGen*>& lg)
                 // Record start time.
                 double start = GetTime();
 
+
                 // Start specified number of txns running.
                 for (int i = 0; i < active_txns; i++) p->NewTxnRequest(lg[exp]->NewTxn());
 
@@ -153,6 +154,9 @@ void Benchmark(const vector<LoadGen*>& lg)
                     txn_count++;
                     p->NewTxnRequest(lg[exp]->NewTxn());
                 }
+
+
+
 
                 // Wait for all of them to finish.
                 for (int i = 0; i < active_txns; i++)

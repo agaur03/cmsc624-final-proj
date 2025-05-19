@@ -1,0 +1,148 @@
+Start testing: May 19 00:34 EDT
+----------------------------------------------------------
+1/3 Testing: lock_manager_test
+1/3 Test: lock_manager_test
+Command: "/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/lock_manager_test"
+Directory: /home/aymanc5297/CMSC624/cmsc624-final-proj/build/src
+"lock_manager_test" start time: May 19 00:34 EDT
+Output:
+----------------------------------------------------------
+[ LockManagerA_SimpleLocking ] [1;32mBEGIN[0m
+[ LockManagerA_SimpleLocking ] [1;32mPASS[0m
+[ LockManagerA_LocksReleasedOutOfOrder ] [1;32mBEGIN[0m
+[ LockManagerA_LocksReleasedOutOfOrder ] [1;32mPASS[0m
+[ LockManagerB_SimpleLocking ] [1;32mBEGIN[0m
+[ LockManagerB_SimpleLocking ] [1;32mPASS[0m
+[ LockManagerB_LocksReleasedOutOfOrder ] [1;32mBEGIN[0m
+[ LockManagerB_LocksReleasedOutOfOrder ] [1;32mPASS[0m
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"lock_manager_test" end time: May 19 00:34 EDT
+"lock_manager_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/3 Testing: txn_processor_test
+2/3 Test: txn_processor_test
+Command: "/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/txn_processor_test"
+Directory: /home/aymanc5297/CMSC624/cmsc624-final-proj/build/src
+"txn_processor_test" start time: May 19 00:34 EDT
+Output:
+----------------------------------------------------------
+		-------------------------------------------------------------------
+		                Average Transaction Duration
+		-------------------------------------------------------------------
+		0.1ms		1ms		10ms		(0.1ms, 1ms, 10ms)
+		-------------------------------------------------------------------
+		            Low contention Read only (5 records)
+		-------------------------------------------------------------------
+CALVIN     	4662.43		4314.21		473.534		1504.82	
+ARIA      	13430.6		2340.89		208.088		412.523	
+
+		            Low contention Read only (30 records)
+		-------------------------------------------------------------------
+CALVIN     	3785.02		3657.01		486.384		1397.92	
+ARIA      	6955.66		1638.09		152.232		421.854	
+
+		            High contention Read only (5 records)
+		-------------------------------------------------------------------
+CALVIN     	4770.98		4326.16		470.473		1515.54	
+ARIA      	7549.14		1852.47		148.603		406.738	
+
+		            High contention Read only (30 records)
+		-------------------------------------------------------------------
+CALVIN     	4555.85		4140.57		480.64		1384.59	
+ARIA      	7908.46		1792.88		148.462		345.514	
+
+		            Low contention read-write (5 records)
+		-------------------------------------------------------------------
+CALVIN     	4590.6		4169.32		478.476		1579.53	
+ARIA      	7291.56		1615.05		170.698		375.466	
+
+		            Low contention read-write (10 records)
+		-------------------------------------------------------------------
+CALVIN     	4386.04		3917.72		418.62		1535.53	
+ARIA      	7225.89		1444.51		159.889		401.648	
+
+		            High contention read-write (5 records)
+		-------------------------------------------------------------------
+CALVIN     	288.532		303.018		140.443		209.184	
+ARIA      	5066.86		1209.97		131.984		293.03	
+
+		            High contention read-write (10 records)
+		-------------------------------------------------------------------
+CALVIN     	135.145		134.229		66.8911		101.727	
+ARIA      	3314		758.842		99.9704		221.197	
+
+		            High contention mixed read only/read-write
+		-------------------------------------------------------------------
+CALVIN     	265.865		314.252		161.874		211.735	
+ARIA      	4081.41		1288.28		152.588		380.793	
+
+<end of output>
+Test time = 138.52 sec
+----------------------------------------------------------
+Test Passed.
+"txn_processor_test" end time: May 19 00:36 EDT
+"txn_processor_test" time elapsed: 00:02:18
+----------------------------------------------------------
+
+3/3 Testing: txn_types_test
+3/3 Test: txn_types_test
+Command: "/home/aymanc5297/CMSC624/cmsc624-final-proj/build/src/txn_types_test"
+Directory: /home/aymanc5297/CMSC624/cmsc624-final-proj/build/src
+"txn_types_test" start time: May 19 00:36 EDT
+Output:
+----------------------------------------------------------
+Running tests for mode:  Serial   
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  Locking A
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  Locking B
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  OCC      
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  OCC-P    
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+Running tests for mode:  MVCC     
+[ NoopTest ] [1;32mBEGIN[0m
+[ NoopTest ] [1;32mPASS[0m
+[ PutTest ] [1;32mBEGIN[0m
+[ PutTest ] [1;32mPASS[0m
+[ PutMultipleTest ] [1;32mBEGIN[0m
+[ PutMultipleTest ] [1;32mPASS[0m
+<end of output>
+Test time =   9.27 sec
+----------------------------------------------------------
+Test Passed.
+"txn_types_test" end time: May 19 00:36 EDT
+"txn_types_test" time elapsed: 00:00:09
+----------------------------------------------------------
+
+End testing: May 19 00:36 EDT

@@ -29,6 +29,8 @@ enum CCMode
     OCC                    = 3,  // Part 2
     P_OCC                  = 4,  // Part 3
     MVCC                   = 5,  // Part 4
+    CALVIN                 = 6,
+    ARIA                   = 7,  
 };
 
 // Returns a human-readable string naming of the providing mode.
@@ -74,11 +76,23 @@ class TxnProcessor
     // OCC version of scheduler.
     void RunOCCScheduler();
 
+    // Calvin version of scheduler
+    void RunCalvinScheduler();
+
     // OCC version of scheduler with parallel validation.
     void RunOCCParallelScheduler();
 
     // MVCC version of scheduler.
     void RunMVCCScheduler();
+
+    // Scheduler that simulates a single-node version of Aria.
+    void RunAriaScheduler();
+
+    // Parallel Execution for transactions in Aria. 
+    void ExecuteTxnAria(Txn* txn);
+
+    // Parallel Validation for transactions in Aria.
+    void CommitTxnAria(Txn* txn);
 
     // Performs all reads required to execute the transaction, then executes the
     // transaction logic.
@@ -117,7 +131,7 @@ class TxnProcessor
     Mutex commit_id_mutex_;
 
     // Queue of incoming transaction requests.
-    AtomicQueue<Txn*> txn_requests_;
+    AtomicDeque<Txn*> txn_requests_;
 
     // Queue of txns that have acquired all locks and are ready to be executed.
     //
@@ -151,6 +165,18 @@ class TxnProcessor
 
     // Gives us access to the scheduler thread so that we can wait for it to join later.
     pthread_t scheduler_thread_;
+
+    // Stores the reservation table for the transactions of the current batch in Aria. 
+    AtomicMap<Key, Value> reservation_table_;
+
+    /* 
+    Used to ensure that the commit phase of Aria does not occur until all transactions have done their execution phase
+    and that the scheduler does not move on to the next batch until all transactions in the current batch have done their
+    commit phase. 
+    */
+    int batch_txns_to_execute;
+    pthread_mutex_t batch_mutex;
+    pthread_cond_t batch_cond; 
 };
 
 #endif  // _TXN_PROCESSOR_H_

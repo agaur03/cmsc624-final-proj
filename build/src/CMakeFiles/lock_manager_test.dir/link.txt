@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall -std=c++11 -fPIC -Wno-unused-but-set-variable -Wno-maybe-uninitialized -O3 -DNDEBUG  -rdynamic CMakeFiles/lock_manager_test.dir/txn/lock_manager_test.cc.o  -o lock_manager_test  libtxn.a -lpthread 

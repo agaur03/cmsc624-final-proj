@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtxn.a  CMakeFiles/txn.dir/txn/storage.cc.o CMakeFiles/txn.dir/txn/mvcc_storage.cc.o CMakeFiles/txn.dir/txn/txn.cc.o CMakeFiles/txn.dir/txn/txn_processor.cc.o CMakeFiles/txn.dir/txn/lock_manager.cc.o
+/usr/bin/ranlib libtxn.a

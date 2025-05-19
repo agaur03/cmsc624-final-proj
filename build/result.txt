@@ -1,0 +1,47 @@
+UpdateCTestConfiguration  from :/workspaces/cmsc624-final-proj/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/workspaces/cmsc624-final-proj/build/DartConfiguration.tcl
+Test project /workspaces/cmsc624-final-proj/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 2
+    Start 2: txn_processor_test
+
+2: Test command: /workspaces/cmsc624-final-proj/build/src/txn_processor_test
+2: Test timeout computed to be: 10000000
+2: 		-------------------------------------------------------------------
+2: 		                Average Transaction Duration
+2: 		-------------------------------------------------------------------
+2: 		0.1ms		1ms		10ms		(0.1ms, 1ms, 10ms)
+2: 		-------------------------------------------------------------------
+2: 		            Low contention Read only (5 records)
+2: 		-------------------------------------------------------------------
+2: CALVIN     	4674.62		3149.99		550.259		1736.79	
+2:  Aria     	14098.1		2294.64		232.727		546.132	
+2: 
+2: 		            Low contention Read only (30 records)
+2: 		-------------------------------------------------------------------
+2: CALVIN     	4090.83		3204.43		575.163		1649.25	
+2:  Aria     	12240		2177.89		222.837		523.434	
+2: 
+2: 		            High contention Read only (5 records)
+2: 		-------------------------------------------------------------------
+2: CALVIN     	4787.91		3340.4		584.44		1588.65	
+2:  Aria     	14298		2185.83		240.513		547.547	
+2: 
+2: 		            High contention Read only (30 records)
+2: 		-------------------------------------------------------------------
+2: CALVIN     	4648.45		3317.56		552.56		1724.22	
+2:  Aria     	13476.1		2255.77		234.655		540.072	
+2: 
+2: 		            Low contention read-write (5 records)
+2: 		-------------------------------------------------------------------
+2: CALVIN     	4752.27		3310.61		578.93		1610.82	
+2:  Aria     	13479.4		2147.29		235.463		599.901	
+2: 
+2: 		            Low contention read-write (10 records)
+2: 		-------------------------------------------------------------------
+2: CALVIN     	4549.1		3368.98		582.851		1645.24	

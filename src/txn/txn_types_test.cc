@@ -53,7 +53,7 @@ TEST(PutTest)
     p.NewTxnRequest(new Expect(m4));  // Should commit
     t = p.GetTxnResult();
     EXPECT_EQ(COMMITTED, t->Status());
-    if (mode == LOCKING || mode == LOCKING_EXCLUSIVE_ONLY)
+    if (mode == LOCKING || mode == LOCKING_EXCLUSIVE_ONLY || mode == CALVIN)
     {
         EXPECT_EQ(4, t->CommitId());
     }
